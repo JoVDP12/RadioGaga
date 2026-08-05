@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!-- saved from url=(0038)https://tseiser.github.io/Bilderliste/ -->
+<html lang="en" style="--teamcolor: #94ec79; --title-button-bg: #ff0000;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ 
+    <script src="./Bilderliste_files/iiamw.js.downloaden"></script>
+    <script src="./Bilderliste_files/index.js.downloaden"></script>
+    <script src="./Bilderliste_files/common.js.downloaden"></script>
+    <link href="./Bilderliste_files/font-awesome.css" rel="stylesheet">
+    
+    <title>Bilderliste</title>
+	
+    <style>
+        td.l, td.r, .sb{
+            width: 2em;
+            height: 2em;
+        }
+        td.c{
+            width: auto;
+            text-align: center;
+        }
+        table{
+            width: 100%;
+        }
+        .btn {
+            background-color: var(--teamcolor);
+            border: none;
+            color: white;
+            padding: 8px 10px;
+            font-size: 1em;
+            line-height: 1.2;
+            cursor: pointer;
+        }
+        .container {
+            display: flex;
+        }
+        .container.space-around {
+            justify-content: space-around;
+        }
+        .container.space-between {
+            justify-content: space-between;
+        }
+		.canvas-wrapper
+		{
+		display: flex;
+		justify-content: center;
+		gap: 20px;
+		width: 100%;
+		overflow-x: auto;
+		}
+		
+		/* slider aanmaken */
+		
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around; /* Verdeelt de groepen gelijkmatig over de hoogte */
+    width: 90px;
+    height: 545px; /* Match de hoogte van het canvas */
+    background-color: var(--teamcolor);
+    color: white;
+    padding: 20px 5px;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.slider-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 0.85em;
+    text-align: center;
+}
+
+/* Verticale styling voor de sliders */
+input[type=range][orient=vertical] {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    appearance: slider-vertical;
+    -webkit-appearance: slider-vertical;
+    width: 8px;
+    height: 180px; /* Iets kortere sliders om ruimte te maken voor de labels */
+    cursor: pointer;
+}
+
+/* Zorg dat de kolommen netjes naast elkaar staan */
+.canvas-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Lijn canvassen onderaan uit */
+    gap: 20px;
+    padding: 10px 20px;
+}
+
+.canvas-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centreert alles (tekst + canvas) in de kolom */
+}
+
+.canvas-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    margin-bottom: 4px;
+    min-height: 60px; /* Houdt de hoogte compact en zorgt voor minder ruimte tussen titel en canvas */
+}
+
+.canvas-info h1, .canvas-info h2 {
+    margin: 0;
+}
+
+/* Stijl voor de nieuwe navigatiebalk */
+
+
+.nav-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap; /* Zorgt ervoor dat knoppen naar de volgende regel gaan bij te weinig ruimte */
+    justify-content: center;
+}
+
+    .nav-title {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 220px;
+        padding: 10px 18px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        background-color: var(--title-button-bg);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .nav-title:hover {
+        opacity: 0.92;
+    }
+
+    .nav-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+
+/* --- Mobiele Responsiveness --- */
+@media (max-width: 768px) {
+    /* Navigatiebalk compacter maken */
+    .nav-controls {
+        padding: 5px;
+    }
+    
+    .nav-row {
+        gap: 5px; /* Minder witruimte tussen de knoppen */
+    }
+
+    /* Maak de knoppen een stuk kleiner */
+    .btn {
+        padding: 6px 8px;
+        margin-bottom: 2px;
+        font-size: 0.75em; /* Kleiner lettertype */
+    }
+
+    /* Zet de canvassen onder elkaar met minder tussenruimte */
+    .canvas-wrapper {
+        flex-direction: column;
+        align-items: center;
+        padding: 5px;
+        gap: 10px;
+    }
+
+    /* Maak het slider blok horizontaal en veel compacter */
+    .slider-container {
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+        padding: 5px;
+        justify-content: center;
+        gap: 20px; /* Ruimte tussen de twee sliders */
+    }
+
+    /* Tekst bij de sliders kleiner maken */
+    .slider-group {
+        font-size: 0.7em;
+        gap: 5px;
+    }
+
+    /* Sliders omzetten naar horizontaal en formaat flink verkleinen */
+    input[type=range][orient=vertical] {
+        writing-mode: horizontal-tb;
+        direction: ltr;
+        appearance: auto;
+        -webkit-appearance: auto;
+        width: 80px;  /* Veel kortere slider */
+        height: 10px; /* Dunnere slider */
+    }
+}
+
+
+
+		
+		
+    </style>
+</head>
+<body>
+
+
+<div class="nav-controls">
+    <div class="nav-row">
+        <div class="nav-group">
+            <button onclick="prevdrittel()" class="btn">&larr; Deel</button>
+            <button onclick="prevtanz()" class="btn">&larr; Dans</button>
+            <button onclick="prev()" class="btn">&larr; Beeld</button>
+            <button onclick="animatePrev(false)" class="btn">&laquo; Move</button>
+            <button onclick="animatePrev(true)" class="btn">&laquo;&laquo; Play to Start</button>
+        </div>
+
+        <button class="nav-title">Radio Gaga</button>
+
+        <div class="nav-group">
+            <button onclick="animateNext(true)" class="btn">Play to End &raquo;&raquo;</button>
+            <button onclick="animateNext(false)" class="btn">Move &raquo;</button>
+            <button onclick="next()" class="btn">Beeld &rarr;</button>
+            <button onclick="nexttanz()" class="btn">Dans &rarr;</button>
+            <button onclick="nextdrittel()" class="btn">Deel &rarr;</button>
+        </div>
+    </div>
+</div>
+
+<div class="canvas-wrapper">
+    <div class="canvas-column">
+        <div class="canvas-info">
+            <h2 id="bildinfo">1. Drittel - Wiener Walzer 1 - Anfang</h2>
+        </div>
+        <canvas id="halle" height="545" width="545"></canvas>
+    </div>
+
+
+
+
+ <div class="slider-container">
+        <div class="slider-group">
+            <label for="speedSlider">Snelheid</label>
+            <input type="range" id="speedSlider" min="1" max="20" value="10" orient="vertical">
+        </div>
+        <div class="slider-group">
+            <label for="transparencySlider">Canvas 2<br>Transparantie</label>
+            <input type="range" id="transparencySlider" min="0" max="100" value="100" orient="vertical">
+        </div>
+    </div>
+
+    <div class="canvas-column">
+        <div class="canvas-info">
+            <h2>&nbsp;</h2> <h2>&nbsp;</h2>
+            <h2>Volgend beeld</h2>
+        </div>
+        <canvas id="halle2" height="545" width="545"></canvas>
+    </div>
+</div>
+
+</body></html>
