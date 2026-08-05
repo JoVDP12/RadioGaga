@@ -1,0 +1,361 @@
+let points = [];
+let canvas;
+let current = 0;
+let spur = false;
+let speed = 10;
+
+
+function onclick(x, y) {
+}
+
+let touchstartX = 0
+let touchstartY = 0
+
+document.addEventListener('touchstart', e => {
+    touchstartX = e.changedTouches[0].screenX;
+    touchstartY = e.changedTouches[0].screenY;
+})
+
+document.addEventListener('touchend', e => {
+    let swipeX = e.changedTouches[0].screenX - touchstartX;
+    let swipeY = e.changedTouches[0].screenY - touchstartY;
+    if (Math.abs(swipeX) > Math.abs(swipeY)) {
+        if (swipeX < -2) next();
+        if (swipeX > 2) prev();
+    }
+})
+
+function onmove(x, y) {
+
+}
+
+function onkey(e) {
+    e = e || window.event;
+
+    if (e.keyCode == '38') {
+        prev();
+    } else if (e.keyCode == '40') {
+        next();
+    } else if (e.keyCode == '37') {
+        prev();
+    } else if (e.keyCode == '39') {
+        next();
+    }
+}
+
+function refresh() {
+    points = BILDER[current].points;
+    document.getElementById("bildinfo").innerText = BILDER[current].drittel + " - " + BILDER[current].tanz + " - " + BILDER[current].name;
+
+    // Teken het huidige beeld links
+    drawBoard(canvas1, BILDER[current].points);
+
+    // Controleer of er een volgend beeld is en teken dit rechts
+    if (current + 1 < BILDER.length) {
+        drawBoard(canvas2, BILDER[current + 1].points);
+    } else {
+        drawBoard(canvas2, null); // Maak de vloer leeg/verwijder poppetjes als we aan het einde zijn
+    }
+}
+
+function prevdrittel() {
+    inAnimation = false;
+    if (current > 0) {
+        if (BILDER[current].drittel !== BILDER[current - 1].drittel) {
+            current--;
+        }
+        while (current > 0 && BILDER[current].drittel === BILDER[current - 1].drittel) {
+            current--;
+        }
+        refresh();
+    }
+}
+
+function nextdrittel() {
+    inAnimation = false;
+    if (current < BILDER.length - 1) {
+        while (current < BILDER.length - 1 && BILDER[current].drittel === BILDER[current + 1].drittel) {
+            current++;
+        }
+        if (current < BILDER.length - 1) {
+            current++;
+        }
+        refresh();
+    }
+}
+
+function prevtanz() {
+    inAnimation = false;
+    if (current > 0) {
+        if (BILDER[current].tanz !== BILDER[current - 1].tanz) {
+            current--;
+        }
+        while (current > 0 && BILDER[current].tanz === BILDER[current - 1].tanz) {
+            current--;
+        }
+        refresh();
+    }
+}
+
+function nexttanz() {
+    inAnimation = false;
+    if (current < BILDER.length - 1) {
+        while (current < BILDER.length - 1 && BILDER[current].tanz === BILDER[current + 1].tanz) {
+            current++;
+        }
+        if (current < BILDER.length - 1) {
+            current++;
+        }
+        refresh();
+    }
+}
+
+function getPoint(positions, number) {
+    for (const i in positions) {
+        if (positions[i].p == number) {
+            return positions[i];
+        }
+    }
+}
+
+function animateNext(playmode) {
+    if (inAnimation || current >= BILDER.length - 1) {
+        return;
+    }
+    let steps = 100;
+    
+    // Animatiedoelen voor het LINKER canvas
+    let start1 = BILDER[current].points;
+    let target1 = BILDER[current + 1].points;
+
+    // Animatiedoelen voor het RECHTER canvas
+    let start2 = null;
+    let target2 = null;
+    if (current + 2 < BILDER.length) {
+        start2 = BILDER[current + 1].points;
+        target2 = BILDER[current + 2].points;
+    }
+
+    let startO1 = [];
+    let targetO1 = [];
+    let maxdistsq = 0;
+
+    for (let i = 0; i < numPositions; i++) {
+        startO1[i] = getPoint(start1, i + 1);
+        targetO1[i] = getPoint(target1, i + 1);
+        
+        let distsq = (targetO1[i].x - startO1[i].x) * (targetO1[i].x - startO1[i].x) + (targetO1[i].y - startO1[i].y) * (targetO1[i].y - startO1[i].y);
+        
+        if (targetO1[i].dx !== undefined || targetO1[i].dy !== undefined || startO1[i].dx !== undefined || startO1[i].dy !== undefined) {
+            if (targetO1[i].dx === undefined || targetO1[i].dy === undefined) {
+                targetO1[i].dx = targetO1[i].x;
+                targetO1[i].dy = targetO1[i].y;
+            }
+            if (startO1[i].dx === undefined || startO1[i].dy === undefined) {
+                startO1[i].dx = startO1[i].x;
+                startO1[i].dy = startO1[i].y;
+            }
+            let distsqD = (targetO1[i].dx - startO1[i].dx) * (targetO1[i].dx - startO1[i].dx) + (targetO1[i].dy - startO1[i].dy) * (targetO1[i].dy - startO1[i].dy);
+            if (maxdistsq < distsqD) {
+                maxdistsq = distsqD;
+            }
+        }
+        if (maxdistsq < distsq) {
+            maxdistsq = distsq;
+        }
+    }
+    steps = (Math.sqrt(maxdistsq) + 2) * (30 / speed);
+
+    let startO2 = [];
+    let targetO2 = [];
+    if (start2 && target2) {
+        for (let i = 0; i < numPositions; i++) {
+            startO2[i] = getPoint(start2, i + 1);
+            targetO2[i] = getPoint(target2, i + 1);
+        }
+    }
+
+    inAnimation = true;
+    animationStepBoth(startO1, targetO1, startO2, targetO2, 0, steps, playmode);
+}
+
+// Hulpfunctie om vloeiende puntberekeningen overzichtelijk te houden
+function calculateInterpolated(startO, targetO, w, steps) {
+    let pts = [];
+    for (let i = 0; i < numPositions; i++) {
+        let linPoint = {
+            "p": startO[i].p,
+            "x": ((targetO[i].x * w) + (startO[i].x * (steps - w))) / steps,
+            "y": ((targetO[i].y * w) + (startO[i].y * (steps - w))) / steps
+        }
+        if (targetO[i].dx !== undefined || targetO[i].dy !== undefined || startO[i].dx !== undefined || startO[i].dy !== undefined) {
+            if (targetO[i].dx === undefined || targetO[i].dy === undefined) {
+                targetO[i].dx = targetO[i].x;
+                targetO[i].dy = targetO[i].y;
+            }
+            if (startO[i].dx === undefined || startO[i].dy === undefined) {
+                startO[i].dx = startO[i].x;
+                startO[i].dy = startO[i].y;
+            }
+            linPoint.dx = ((targetO[i].dx * w) + (startO[i].dx * (steps - w))) / steps;
+            linPoint.dy = ((targetO[i].dy * w) + (startO[i].dy * (steps - w))) / steps;
+        }
+        pts[i] = linPoint;
+    }
+    return pts;
+}
+
+// Verwerkt frames synchroon op zowel het linker als het rechter canvas
+function animationStepBoth(startO1, targetO1, startO2, targetO2, w, steps, playmode) {
+    if (!inAnimation) return;
+    
+    if (w >= steps) {
+        inAnimation = false;
+        next();
+        if (playmode) {
+            setTimeout(() => animateNext(true), 200);
+        }
+        return;
+    }
+
+    let pts1 = calculateInterpolated(startO1, targetO1, w, steps);
+    drawBoard(canvas1, pts1);
+
+    if (startO2.length > 0 && targetO2.length > 0) {
+        let pts2 = calculateInterpolated(startO2, targetO2, w, steps);
+        drawBoard(canvas2, pts2);
+    } else {
+        drawBoard(canvas2, null);
+    }
+
+    // Ondersteuning voor de spoor-lijnen (spur) mocht je dat in de toekomst weer aanzetten
+    if (spur) {
+        const ctx1 = canvas1.getContext("2d");
+        ctx1.beginPath();
+        for (let i = 0; i < numPositions; i++) {
+            ctx1.moveTo(0.5 + coordToGrid(startO1[i].x), 0.5 + coordToGrid(startO1[i].y));
+            ctx1.lineTo(0.5 + coordToGrid(targetO1[i].x), 0.5 + coordToGrid(targetO1[i].y));
+        }
+        ctx1.strokeStyle = COLOR;
+        ctx1.stroke();
+
+        if (startO2.length > 0 && targetO2.length > 0) {
+            const ctx2 = canvas2.getContext("2d");
+            ctx2.beginPath();
+            for (let i = 0; i < numPositions; i++) {
+                ctx2.moveTo(0.5 + coordToGrid(startO2[i].x), 0.5 + coordToGrid(startO2[i].y));
+                ctx2.lineTo(0.5 + coordToGrid(targetO2[i].x), 0.5 + coordToGrid(targetO2[i].y));
+            }
+            ctx2.strokeStyle = COLOR;
+            ctx2.stroke();
+        }
+    }
+
+    setTimeout(() => animationStepBoth(startO1, targetO1, startO2, targetO2, w + 1, steps, playmode), 16);
+}
+
+function animatePrev(playmode) {
+    if (inAnimation || current <= 0) {
+        return;
+    }
+    let steps = 100;
+    
+    // Animatiedoelen voor het LINKER canvas (huidig -> vorig)
+    let start1 = BILDER[current].points;
+    let target1 = BILDER[current - 1].points;
+
+    // Animatiedoelen voor het RECHTER canvas (volgend -> huidig)
+    let start2 = null;
+    let target2 = null;
+    if (current + 1 < BILDER.length) {
+        start2 = BILDER[current + 1].points;
+        target2 = BILDER[current].points;
+    }
+
+    let startO1 = [];
+    let targetO1 = [];
+    let maxdistsq = 0;
+
+    for (let i = 0; i < numPositions; i++) {
+        startO1[i] = getPoint(start1, i + 1);
+        targetO1[i] = getPoint(target1, i + 1);
+        
+        let distsq = (targetO1[i].x - startO1[i].x) * (targetO1[i].x - startO1[i].x) + (targetO1[i].y - startO1[i].y) * (targetO1[i].y - startO1[i].y);
+        if (targetO1[i].dx !== undefined || targetO1[i].dy !== undefined || startO1[i].dx !== undefined || startO1[i].dy !== undefined) {
+            if (targetO1[i].dx === undefined || targetO1[i].dy === undefined) {
+                targetO1[i].dx = targetO1[i].x;
+                targetO1[i].dy = targetO1[i].y;
+            }
+            if (startO1[i].dx === undefined || startO1[i].dy === undefined) {
+                startO1[i].dx = startO1[i].x;
+                startO1[i].dy = startO1[i].y;
+            }
+            let distsqD = (targetO1[i].dx - startO1[i].dx) * (targetO1[i].dx - startO1[i].dx) + (targetO1[i].dy - startO1[i].dy) * (targetO1[i].dy - startO1[i].dy);
+            if (maxdistsq < distsqD) {
+                maxdistsq = distsqD;
+            }
+        }
+        if (maxdistsq < distsq) {
+            maxdistsq = distsq;
+        }
+    }
+    steps = (Math.sqrt(maxdistsq) + 2) * (30 / speed);
+
+    let startO2 = [];
+    let targetO2 = [];
+    if (start2 && target2) {
+        for (let i = 0; i < numPositions; i++) {
+            startO2[i] = getPoint(start2, i + 1);
+            targetO2[i] = getPoint(target2, i + 1);
+        }
+    }
+
+    inAnimation = true;
+    animationStepBothPrev(startO1, targetO1, startO2, targetO2, 0, steps, playmode);
+}
+
+// Speciale loop functie voor het achteruit animeren
+function animationStepBothPrev(startO1, targetO1, startO2, targetO2, w, steps, playmode) {
+    if (!inAnimation) return;
+    if (w >= steps) {
+        inAnimation = false;
+        prev(); // Let op: hier roepen we prev() aan in plaats van next()
+        if (playmode) {
+            setTimeout(() => animatePrev(true), 200);
+        }
+        return;
+    }
+
+    let pts1 = calculateInterpolated(startO1, targetO1, w, steps);
+    drawBoard(canvas1, pts1);
+
+    if (startO2.length > 0 && targetO2.length > 0) {
+        let pts2 = calculateInterpolated(startO2, targetO2, w, steps);
+        drawBoard(canvas2, pts2);
+    } else {
+        drawBoard(canvas2, null);
+    }
+
+    if (spur) {
+        const ctx1 = canvas1.getContext("2d");
+        ctx1.beginPath();
+        for (let i = 0; i < numPositions; i++) {
+            ctx1.moveTo(0.5 + coordToGrid(startO1[i].x), 0.5 + coordToGrid(startO1[i].y));
+            ctx1.lineTo(0.5 + coordToGrid(targetO1[i].x), 0.5 + coordToGrid(targetO1[i].y));
+        }
+        ctx1.strokeStyle = COLOR;
+        ctx1.stroke();
+        if (startO2.length > 0 && targetO2.length > 0) {
+            const ctx2 = canvas2.getContext("2d");
+            ctx2.beginPath();
+            for (let i = 0; i < numPositions; i++) {
+                ctx2.moveTo(0.5 + coordToGrid(startO2[i].x), 0.5 + coordToGrid(startO2[i].y));
+                ctx2.lineTo(0.5 + coordToGrid(targetO2[i].x), 0.5 + coordToGrid(targetO2[i].y));
+            }
+            ctx2.strokeStyle = COLOR;
+            ctx2.stroke();
+        }
+    }
+
+    setTimeout(() => animationStepBothPrev(startO1, targetO1, startO2, targetO2, w + 1, steps, playmode), 16);
+}
